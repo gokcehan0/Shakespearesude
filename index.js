@@ -22,11 +22,28 @@ function getRandomSonne() {
     };
 }
 
+function exactMatch(word, sentence) {
+    const regex = new RegExp(`\\b${word}\\b`, 'i'); 
+    return regex.test(sentence);
+}
 
 function searchInSonnets(query) {
     const results = [];
+
+    if (/^\d+$/.test(query)) {
+        const sonnetIndex = parseInt(query, 10) - 1;
+        if (sonnetIndex >= 0 && sonnetIndex < sonnets.length) {
+            return [{
+                title: sonnets[sonnetIndex].title,
+                line: 'Found by number',
+                sonnetLineIndex: -1,
+                sonne: sonnets[sonnetIndex].lines
+            }];
+        }
+    }
+
     sonnets.forEach(sonnet => {
-        if (sonnet.title.toLowerCase().includes(query.toLowerCase())) {
+        if (exactMatch(query, sonnet.title)) {
             results.push({
                 title: sonnet.title,
                 line: 'Title match found',
@@ -36,7 +53,7 @@ function searchInSonnets(query) {
         }
 
         sonnet.lines.forEach((line, index) => {
-            if (line.toLowerCase().includes(query.toLowerCase())) {
+            if (exactMatch(query, line)) {
                 results.push({
                     title: sonnet.title,
                     line: line,
@@ -50,13 +67,13 @@ function searchInSonnets(query) {
     return results;
 }
 
-//endpoint random sonnet
+// endpoint random sonet
 app.get('/apisude', (req, res) => {
     const randomSonne = getRandomSonne();
     res.send({ line: randomSonne.line, title: randomSonne.title, sonne: randomSonne.sonne });
 });
 
-// endpoint search
+// Endpoint search
 app.get('/search', (req, res) => {
     const query = req.query.query;
     if (!query) {
@@ -66,14 +83,13 @@ app.get('/search', (req, res) => {
     res.send({ query, results: searchResults });
 });
 
-// seerve html
+// Serve HTML
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
 
-module.exports = app; // vercel
+module.exports = app; // Vercel
